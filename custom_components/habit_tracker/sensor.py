@@ -28,7 +28,8 @@ async def async_setup_entry(
     person_key = data["person_key"]
     name = data["name"]
 
-    habits = data_manager.get_person_habits(person_key)
+    # Read habits from config options
+    habits = config_entry.options.get("habits", [])
     sensors = []
 
     for habit in habits:

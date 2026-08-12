@@ -15,7 +15,7 @@ A Home Assistant custom integration for tracking daily habits with a weekly grid
 - **Multiple People** — Create separate habit trackers for each household member
 - **Automatic Statistics** — Tracks total completions and completion rate (%) per habit
 - **Persistent Storage** — All data saved to JSON, survives restarts
-- **Service-Based** — Add, remove, set completions, and reset weeks via services
+- **UI-Based Configuration** — Add/remove habits directly in the integration settings
 
 ## Installation
 
@@ -41,30 +41,35 @@ Adding Habit Tracker for Home Assistant to HACS can be done using this button:
 
 ## Setup
 
+### 1. Add a Person
+
 1. Go to **Settings → Devices & Services → Add Integration**
 2. Search for **Habit Tracker**
 3. Enter a name (e.g., "John", "Sarah")
 4. Click **Submit**
-5. Repeat for additional people
+
+### 2. Configure Habits
+
+After adding a person, configure their habits:
+
+1. Go to **Settings → Devices & Services**
+2. Find your Habit Tracker instance and click **Configure**
+3. Choose **Add Habit** or **Remove Habit**
+4. For new habits, enter:
+   - **Habit ID**: lowercase with underscores (e.g., `exercise`, `morning_reading`)
+   - **Display Name**: human-readable name (e.g., "Exercise", "Morning Reading")
+
+### 3. Repeat for Additional People
+
+Repeat steps 1–2 for each household member.
 
 ## Usage
 
-### Adding Habits
-
-Use the service `habit_tracker.add_habit`:
-
-```yaml
-service: habit_tracker.add_habit
-data:
-  habit_id: exercise
-  habit_name: Exercise
-target:
-  entity_id: button.habit_tracker_john_add_habit
-```
-
 ### Toggling Completion
 
-Tap any binary sensor entity in the UI to toggle completion for today. Or use the service:
+Tap any binary sensor entity in the UI to toggle completion for today.
+
+Or use the service:
 
 ```yaml
 service: habit_tracker.set_completion
@@ -72,16 +77,6 @@ data:
   habit_id: exercise
   date: "2024-01-15"
   completed: true
-target:
-  entity_id: button.habit_tracker_john_add_habit
-```
-
-### Removing Habits
-
-```yaml
-service: habit_tracker.remove_habit
-data:
-  habit_id: exercise
 target:
   entity_id: button.habit_tracker_john_add_habit
 ```
@@ -98,7 +93,7 @@ target:
 
 | Entity                                         | Type          | Description                 |
 | ---------------------------------------------- | ------------- | --------------------------- |
-| `button.habit_tracker_{person}_add_habit`      | Button        | Trigger to add new habits   |
+| `button.habit_tracker_{person}_add_habit`      | Button        | Service trigger (always present) |
 | `binary_sensor.habit_tracker_{person}_{habit}` | Binary Sensor | Toggle completion for today |
 | `sensor.habit_tracker_{person}_{habit}_total`  | Sensor        | Total days completed        |
 | `sensor.habit_tracker_{person}_{habit}_rate`   | Sensor        | Completion rate (%)         |
@@ -117,7 +112,9 @@ entities:
     name: Exercise Rate
 ```
 
-## Services Reference
+## Services Reference (Advanced)
+
+Services are available for automations and scripts:
 
 | Service                        | Description                  | Required Data                   |
 | ------------------------------ | ---------------------------- | ------------------------------- |
