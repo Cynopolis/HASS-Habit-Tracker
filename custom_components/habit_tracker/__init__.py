@@ -39,6 +39,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create data manager using HA's Store helper
     data_manager = DataManager(hass)
 
+    # Load existing data asynchronously
+    await data_manager.async_load()
+
     # Add person if not exists
     person_key = entry.entry_id
     data_manager.add_person(person_key, name)
@@ -81,12 +84,14 @@ def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
             )
             return
 
-        habit = dm.add_habit(person_key, habit_id, habit_name)
-        if habit:
-            await hass.config_entries.async_forward_entry_setups(
-                entry, ["binary_sensor", "sensor"]
-            )
-            _LOGGER.info("Habit '%s' added via service", habit_name)
+        dm.add_habit(person_key, habit_id, habit_name)
+        await dm.async_save()
+
+        # Reload platforms to create new entities
+        await hass.config_entries.async_forward_entry_setups(
+            entry, ["binary_sensor", "sensor"]
+        )
+        _LOGGER.info("Habit '%s' added via service", habit_name)
 
     async def handle_remove_habit(service_call):
         """Handle remove_habit service call."""
@@ -102,6 +107,8 @@ def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
             return
 
         dm.remove_habit(person_key, habit_id)
+        await dm.async_save()
+
         # Reload to remove entities
         await hass.config_entries.async_reload(entry.entry_id)
 
@@ -124,6 +131,7 @@ def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
             return
 
         dm.set_completion(person_key, habit_id, date_str, completed)
+        await dm.async_save()
 
     async def handle_reset_week(service_call):
         """Handle reset_week service call."""
@@ -132,6 +140,7 @@ def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
         person_key = data["person_key"]
 
         count = dm.reset_week(person_key)
+        await dm.async_save()
         _LOGGER.info("Week reset for %s, cleared %s completions", entry_id, count)
 
     # Register services with entity_id context

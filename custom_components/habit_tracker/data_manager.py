@@ -26,14 +26,13 @@ class DataManager:
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the data manager using HA's Store helper."""
         self.hass = hass
-        self._store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+        self._store = Store[dict[str, Any]](hass, STORAGE_VERSION, STORAGE_KEY)
         self._data: dict[str, Any] = {}
-        self._load_sync()
 
-    def _load_sync(self) -> None:
-        """Load data from disk synchronously (called during __init__)."""
+    async def async_load(self) -> None:
+        """Load data from disk asynchronously."""
         try:
-            loaded = self._store.data
+            loaded = await self._store.async_load()
             if loaded is not None:
                 self._data = loaded
                 _LOGGER.debug("Loaded habit tracker data from store")
@@ -43,18 +42,10 @@ class DataManager:
             _LOGGER.error("Failed to load habit tracker data: %s", e)
             self._data = {}
 
-    async def _async_save(self) -> None:
+    async def async_save(self) -> None:
         """Save data to disk asynchronously."""
         try:
             await self._store.async_save(self._data)
-            _LOGGER.debug("Saved habit tracker data to store")
-        except Exception as e:
-            _LOGGER.error("Failed to save habit tracker data: %s", e)
-
-    def save_sync(self) -> None:
-        """Save data synchronously (blocking, use sparingly)."""
-        try:
-            self._store.save(self._data)
             _LOGGER.debug("Saved habit tracker data to store")
         except Exception as e:
             _LOGGER.error("Failed to save habit tracker data: %s", e)
@@ -84,8 +75,6 @@ class DataManager:
             KEY_HABITS: [],
         }
         self._data.setdefault("people", {})[person_key] = person_data
-        self.save_sync()
-        _LOGGER.info("Added new person '%s' (%s)", name, person_key)
         return person_data
 
     def remove_person(self, person_key: str) -> bool:
@@ -95,8 +84,6 @@ class DataManager:
             return False
 
         del self._data["people"][person_key]
-        self.save_sync()
-        _LOGGER.info("Removed person '%s'", person_key)
         return True
 
     def get_habit(self, person_key: str, habit_id: str) -> Optional[dict]:
@@ -125,10 +112,6 @@ class DataManager:
 
         habit = default_habit_data(habit_id, name)
         person[KEY_HABITS].append(habit)
-        self.save_sync()
-        _LOGGER.info(
-            "Added habit '%s' (%s) for person '%s'", name, habit_id, person_key
-        )
         return habit
 
     def remove_habit(self, person_key: str, habit_id: str) -> bool:
@@ -141,10 +124,6 @@ class DataManager:
         for i, habit in enumerate(habits):
             if habit["id"] == habit_id:
                 person[KEY_HABITS].pop(i)
-                self.save_sync()
-                _LOGGER.info(
-                    "Removed habit '%s' from person '%s'", habit_id, person_key
-                )
                 return True
         return False
 
@@ -160,7 +139,6 @@ class DataManager:
         completions = habit.setdefault(KEY_COMPLETIONS, {})
         old_value = completions.get(date_str)
         completions[date_str] = completed
-        self.save_sync()
 
         status = "completed" if completed else "not completed"
         _LOGGER.debug(
@@ -227,7 +205,6 @@ class DataManager:
                     completions[date_str] = False
                     reset_count += 1
 
-        self.save_sync()
         _LOGGER.info("Reset %s completions for person '%s'", reset_count, person_key)
         return reset_count
 
