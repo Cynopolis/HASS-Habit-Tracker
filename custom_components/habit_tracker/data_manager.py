@@ -111,13 +111,17 @@ class DataManager:
 
         # Check if habit already exists
         if self.get_habit(person_key, habit_id):
-            _LOGGER.warning("Habit '%s' already exists for person '%s'", habit_id, person_key)
+            _LOGGER.warning(
+                "Habit '%s' already exists for person '%s'", habit_id, person_key
+            )
             return None
 
         habit = default_habit_data(habit_id, name)
         person[KEY_HABITS].append(habit)
         self.save()
-        _LOGGER.info("Added habit '%s' (%s) for person '%s'", name, habit_id, person_key)
+        _LOGGER.info(
+            "Added habit '%s' (%s) for person '%s'", name, habit_id, person_key
+        )
         return habit
 
     def remove_habit(self, person_key: str, habit_id: str) -> bool:
@@ -131,17 +135,19 @@ class DataManager:
             if habit["id"] == habit_id:
                 person[KEY_HABITS].pop(i)
                 self.save()
-                _LOGGER.info("Removed habit '%s' from person '%s'", habit_id, person_key)
+                _LOGGER.info(
+                    "Removed habit '%s' from person '%s'", habit_id, person_key
+                )
                 return True
         return False
 
-    def set_completion(self, person_key: str, habit_id: str, date_str: str, completed: bool) -> bool:
+    def set_completion(
+        self, person_key: str, habit_id: str, date_str: str, completed: bool
+    ) -> bool:
         """Set completion status for a habit on a specific date."""
         habit = self.get_habit(person_key, habit_id)
         if not habit:
-            _LOGGER.error(
-                "Habit '%s' not found for person '%s'", habit_id, person_key
-            )
+            _LOGGER.error("Habit '%s' not found for person '%s'", habit_id, person_key)
             return False
 
         completions = habit.setdefault(KEY_COMPLETIONS, {})
@@ -152,11 +158,16 @@ class DataManager:
         status = "completed" if completed else "not completed"
         _LOGGER.debug(
             "Set %s for '%s' on %s (was: %s)",
-            status, habit["name"], date_str, old_value
+            status,
+            habit["name"],
+            date_str,
+            old_value,
         )
         return True
 
-    def get_completion(self, person_key: str, habit_id: str, date_str: str) -> Optional[bool]:
+    def get_completion(
+        self, person_key: str, habit_id: str, date_str: str
+    ) -> Optional[bool]:
         """Get completion status for a habit on a specific date."""
         habit = self.get_habit(person_key, habit_id)
         if not habit:

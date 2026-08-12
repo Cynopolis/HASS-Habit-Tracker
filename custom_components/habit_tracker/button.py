@@ -4,13 +4,13 @@ import logging
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    SUFFIX_BUTTON_ADD,
     ICON_CHART,
+    SUFFIX_BUTTON_ADD,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class HabitTrackerAddButton(ButtonEntity):
     """Represents the 'Add Habit' button for a person's tracker."""
 
     _attr_has_entity_name = True
-    _attr_name = f"Add New Habit"
+    _attr_name = "Add New Habit"
     _attr_icon = ICON_CHART
 
     def __init__(

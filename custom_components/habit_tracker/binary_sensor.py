@@ -4,12 +4,12 @@ import logging
 from datetime import date, timedelta
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
     BinarySensorDeviceClass,
+    BinarySensorEntity,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DAYS_OF_WEEK,
@@ -117,7 +117,7 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
         week_grid = {}
         for i, date_str in enumerate(self._week_dates):
             day_name = DAYS_OF_WEEK[i]
-            is_today = (i == self._current_day_index)
+            is_today = i == self._current_day_index
             week_grid[day_name] = {
                 "date": date_str,
                 "completed": bool(completions.get(date_str)),

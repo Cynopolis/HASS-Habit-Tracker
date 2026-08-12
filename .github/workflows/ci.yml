@@ -1,0 +1,298 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ------------------------------------------------------------------
+  # 1. Validate all JSON files are syntactically correct
+  # ------------------------------------------------------------------
+  json:
+    name: Validate JSON
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          echo "Checking all JSON files in the repository..."
+          errors=0
+          for file in $(find . -name '*.json' -not -path './.git/*'); do
+            if ! python3 -m json.tool "$file" > /dev/null 2>&1; then
+              echo "❌ INVALID: $file"
+              errors=$((errors + 1))
+            else
+              echo "✅ OK: $file"
+            fi
+          done
+
+          if [ "$errors" -gt 0 ]; then
+            echo ""
+            echo "FAILURE: $errors JSON file(s) are invalid."
+            exit 1
+          fi
+
+          echo ""
+          echo "All JSON files are valid."
+
+  # ------------------------------------------------------------------
+  # 2. Check Python code compiles (py_compile) on multiple versions
+  # ------------------------------------------------------------------
+  py_compile:
+    name: Compile Python (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile all Python files
+        run: |
+          echo "Compiling all Python source files..."
+          errors=0
+          for file in $(find ./custom_components -name '*.py' -not -path '*/__pycache__/*'); do
+            if ! python3 -m py_compile "$file"; then
+              echo "❌ COMPILE FAILED: $file"
+              errors=$((errors + 1))
+            else
+              echo "✅ OK: $file"
+            fi
+          done
+
+          if [ "$errors" -gt 0 ]; then
+            echo ""
+            echo "FAILURE: $errors Python file(s) failed to compile."
+            exit 1
+          fi
+
+          echo ""
+          echo "All Python files compile successfully."
+
+  # ------------------------------------------------------------------
+  # 3. Lint Python code with ruff (fast, modern linter)
+  # ------------------------------------------------------------------
+  lint:
+    name: Lint Python (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff (linting)
+        run: |
+          ruff check ./custom_components/
+        continue-on-error: false
+
+      - name: Run ruff (format check)
+        run: |
+          ruff format --check ./custom_components/
+        continue-on-error: true  # Format errors are warnings, not failures
+
+  # ------------------------------------------------------------------
+  # 4. Validate manifest.json and hacs.json against HA/HACS schemas
+  # ------------------------------------------------------------------
+  schema:
+    name: Validate manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install home-assistant-pyvoluptuous (for schema validation)
+        run: pip install voluptuous
+
+      - name: Validate manifest.json
+        run: |
+          echo "Validating manifest.json..."
+          python3 << 'EOF'
+          import json
+          import sys
+
+          with open("custom_components/habit_tracker/manifest.json") as f:
+              manifest = json.load(f)
+
+          errors = []
+
+          # Required fields per HA docs
+          required = ["domain", "name"]
+          for field in required:
+              if field not in manifest:
+                  errors.append(f"  Missing required field: {field}")
+
+          # domain must match directory name
+          expected_domain = "habit_tracker"
+          if manifest.get("domain") != expected_domain:
+              errors.append(
+                  f"  Domain '{manifest.get('domain')}' does not match "
+                  f"directory name '{expected_domain}'"
+              )
+
+          # version is required for custom components
+          if "version" not in manifest:
+              errors.append("  Missing 'version' field (required for custom components)")
+
+          # config_flow flag
+          if manifest.get("config_flow") and not manifest.get("codeowners"):
+              print("  ⚠️  Warning: config_flow is true but no codeowners specified")
+
+          if errors:
+              print("❌ manifest.json validation FAILED:")
+              for e in errors:
+                  print(e)
+              sys.exit(1)
+          else:
+              print("✅ manifest.json is valid.")
+              print(f"   Domain: {manifest['domain']}")
+              print(f"   Version: {manifest.get('version', 'N/A')}")
+          EOF
+
+      - name: Validate hacs.json
+        run: |
+          echo "Validating hacs.json..."
+          python3 << 'EOF'
+          import json
+          import sys
+
+          with open("hacs.json") as f:
+              hacs = json.load(f)
+
+          errors = []
+
+          # name is the most important field for HACS
+          if "name" not in hacs:
+              errors.append("  Missing required field: 'name'")
+
+          # homeassistant should specify a minimum version
+          if "homeassistant" not in hacs:
+              print("  ⚠️  Warning: No 'homeassistant' minimum version specified")
+
+          # render_readme should be true for integrations with README
+          if hacs.get("render_readme") and not __import__("os").path.exists("README.md"):
+              errors.append("  render_readme is true but no README.md found")
+
+          if errors:
+              print("❌ hacs.json validation FAILED:")
+              for e in errors:
+                  print(e)
+              sys.exit(1)
+          else:
+              print("✅ hacs.json is valid.")
+              print(f"   Name: {hacs.get('name')}")
+          EOF
+
+  # ------------------------------------------------------------------
+  # 5. Check file structure matches Home Assistant expectations
+  # ------------------------------------------------------------------
+  structure:
+    name: Validate file structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required files exist
+        run: |
+          echo "Checking required integration files..."
+          missing=0
+
+          check_file() {
+            if [ ! -f "$1" ]; then
+              echo "❌ MISSING: $1"
+              missing=$((missing + 1))
+            else
+              echo "✅ FOUND: $1"
+            fi
+          }
+
+          # Core integration files
+          check_file "custom_components/habit_tracker/__init__.py"
+          check_file "custom_components/habit_tracker/manifest.json"
+          check_file "hacs.json"
+          check_file "README.md"
+          check_file "LICENSE"
+
+          # Platform files
+          check_file "custom_components/habit_tracker/button.py"
+          check_file "custom_components/habit_tracker/binary_sensor.py"
+          check_file "custom_components/habit_tracker/sensor.py"
+
+          # Config flow
+          check_file "custom_components/habit_tracker/config_flow.py"
+
+          # Translations
+          check_file "custom_components/habit_tracker/translations/en.json"
+
+          if [ "$missing" -gt 0 ]; then
+            echo ""
+            echo "FAILURE: $missing required file(s) are missing."
+            exit 1
+          fi
+
+          echo ""
+          echo "All required files are present."
+
+  # ------------------------------------------------------------------
+  # Summary status job (runs all, reports combined result)
+  # ------------------------------------------------------------------
+  status:
+    name: CI Status
+    runs-on: ubuntu-latest
+    needs: [json, py_compile, lint, schema, structure]
+    if: always()
+    steps:
+      - name: Check overall result
+        run: |
+          echo "=========================================="
+          echo "  CI Pipeline Summary"
+          echo "=========================================="
+          echo ""
+
+          results=()
+          for job in "${{ toJSON(needs) }}"; do
+            # This is handled by GitHub automatically via the matrix
+            :
+          done
+
+          if [ "${{ needs.json.result }}" = "success" ] && \
+             [ "${{ needs.py_compile.result }}" = "success" ] && \
+             [ "${{ needs.lint.result }}" = "success" ] && \
+             [ "${{ needs.schema.result }}" = "success" ] && \
+             [ "${{ needs.structure.result }}" = "success" ]; then
+            echo "✅ All checks passed!"
+            exit 0
+          else
+            echo "❌ Some checks failed:"
+            [ "${{ needs.json.result }}" != "success" ] && echo "  - JSON validation failed"
+            [ "${{ needs.py_compile.result }}" != "success" ] && echo "  - Python compilation failed"
+            [ "${{ needs.lint.result }}" != "success" ] && echo "  - Linting failed"
+            [ "${{ needs.schema.result }}" != "success" ] && echo "  - Schema validation failed"
+            [ "${{ needs.structure.result }}" != "success" ] && echo "  - File structure check failed"
+            exit 1
+          fi

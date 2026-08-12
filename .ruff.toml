@@ -1,0 +1,18 @@
+# Ruff configuration for Habit Tracker
+# https://docs.astral.sh/ruff/settings/
+
+line-length = 88
+
+target-version = "py312"
+
+[lint]
+# Enable pycodestyle (E), pyflakes (F), and isort (I) rules
+select = ["E", "F", "I", "W"]
+ignore = [
+    "E501",  # Line length handled by formatter
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
