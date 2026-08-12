@@ -1,0 +1,172 @@
+# Sample Home Assistant configuration for Habit Tracker
+# 
+# This integration is UI-configurable, so no YAML is required.
+# The examples below show how to use services and automations.
+
+# ============================================
+# AUTOMATIONS - Add habits on first startup
+# ============================================
+automation:
+  # Add habits for John's tracker
+  - alias: "Add John's initial habits"
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - service: habit_tracker.add_habit
+        data:
+          habit_id: exercise
+          habit_name: Exercise
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+      
+      - service: habit_tracker.add_habit
+        data:
+          habit_id: reading
+          habit_name: Reading
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+      
+      - service: habit_tracker.add_habit
+        data:
+          habit_id: meditation
+          habit_name: Meditation
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+
+  # Add habits for Sarah's tracker
+  - alias: "Add Sarah's initial habits"
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - service: habit_tracker.add_habit
+        data:
+          habit_id: yoga
+          habit_name: Yoga
+        target:
+          entity_id: button.habit_tracker_sarah_add_habit
+      
+      - service: habit_tracker.add_habit
+        data:
+          habit_id: journaling
+          habit_name: Journaling
+        target:
+          entity_id: button.habit_tracker_sarah_add_habit
+
+# ============================================
+# AUTOMATIONS - Reminders and maintenance
+# ============================================
+  # Evening reminder to log habits
+  - alias: "Evening habit reminder"
+    trigger:
+      - platform: time
+        at: "20:00:00"
+    action:
+      - service: persistent_notification.create
+        data:
+          title: "🏋️ Time to log your habits!"
+          message: >
+            Don't forget to check off today's completed habits!
+            - John: {{ states.binary_sensor.habit_tracker_john_exercise.state }}
+            - Sarah: {{ states.binary_sensor.habit_tracker_sarah_yoga.state }}
+
+  # Weekly reset on Monday mornings
+  - alias: "Reset week every Monday"
+    trigger:
+      - platform: time
+        at: "06:00:00"
+    condition:
+      - platform: numeric_state
+        entity_id: sensor.date
+        attribute: weekday
+        above: 0
+    action:
+      # Reset John's week
+      - service: habit_tracker.reset_week
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+      # Reset Sarah's week
+      - service: habit_tracker.reset_week
+        target:
+          entity_id: button.habit_tracker_sarah_add_habit
+
+# ============================================
+# AUTOMATIONS - Smart completion tracking
+# ============================================
+  # Auto-complete exercise if workout smart device detected
+  - alias: "Auto-mark exercise when gym check-in"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.gym_checkin
+        to: "on"
+    action:
+      - service: habit_tracker.set_completion
+        data:
+          habit_id: exercise
+          date: "{{ now().strftime('%Y-%m-%d') }}"
+          completed: true
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+
+# ============================================
+# INPUT HELPERS - For easy UI habit adding
+# ============================================
+input_text:
+  john_new_habit_id:
+    name: "New Habit ID (John)"
+    initial: ""
+    icon: mdi:pencil
+  
+  john_new_habit_name:
+    name: "New Habit Name (John)"
+    initial: ""
+    icon: mdi:pencil
+
+# ============================================
+# SCRIPTS - Common actions
+# ============================================
+script:
+  add_john_habit:
+    alias: "Add habit to John's tracker"
+    fields:
+      habit_id:
+        name: "Habit ID"
+        description: "Unique identifier (e.g., 'morning_run')"
+      habit_name:
+        name: "Habit Name"
+        description: "Display name (e.g., 'Morning Run')"
+    sequence:
+      - service: habit_tracker.add_habit
+        data:
+          habit_id: "{{ habit_id }}"
+          habit_name: "{{ habit_name }}"
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+
+  add_sarah_habit:
+    alias: "Add habit to Sarah's tracker"
+    fields:
+      habit_id:
+        name: "Habit ID"
+        description: "Unique identifier (e.g., 'evening_walk')"
+      habit_name:
+        name: "Habit Name"
+        description: "Display name (e.g., 'Evening Walk')"
+    sequence:
+      - service: habit_tracker.add_habit
+        data:
+          habit_id: "{{ habit_id }}"
+          habit_name: "{{ habit_name }}"
+        target:
+          entity_id: button.habit_tracker_sarah_add_habit
+
+  reset_all_weeks:
+    alias: "Reset all habit weeks"
+    sequence:
+      - service: habit_tracker.reset_week
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+      - service: habit_tracker.reset_week
+        target:
+          entity_id: button.habit_tracker_sarah_add_habit

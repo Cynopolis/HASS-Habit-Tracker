@@ -1,0 +1,148 @@
+# Sample Lovelace Dashboard for Habit Tracker
+# Add this to your configuration.yaml under:
+# lovelace:
+#   mode: yaml
+#   dashboards:
+#     habit-tracker:
+#       title: Habit Tracker
+#       mode: yaml
+#       filename: dashboards/habit-tracker.yaml
+
+title: Habit Tracker
+views:
+  # =============================================
+  # VIEW 1: Weekly Grid - All People
+  # =============================================
+  - title: Weekly Grid
+    icon: mdi:calendar-check
+    cards:
+      # John's Habits Grid
+      - type: entities
+        title: John's Habits
+        show_header_toggle: false
+        entities:
+          - entity: binary_sensor.habit_tracker_john_exercise
+            name: Exercise
+            icon: mdi:soccer
+          - entity: binary_sensor.habit_tracker_john_reading
+            name: Reading
+            icon: mdi:book-open-page-variant
+          - entity: binary_sensor.habit_tracker_john_meditation
+            name: Meditation
+            icon: mdi:spirit-level
+
+      # Sarah's Habits Grid
+      - type: entities
+        title: Sarah's Habits
+        show_header_toggle: false
+        entities:
+          - entity: binary_sensor.habit_tracker_sarah_yoga
+            name: Yoga
+            icon: mdi:yoga
+          - entity: binary_sensor.habit_tracker_sarah_journaling
+            name: Journaling
+            icon: mdi:file-document-edit
+
+      # Action buttons
+      - type: button
+        title: Actions
+        show_name: true
+        show_icon: false
+        tap_action:
+          action: call-service
+          service: habit_tracker.reset_week
+          data: {}
+        target:
+          entity_id: button.habit_tracker_john_add_habit
+        name: Reset John's Week
+
+      - type: button
+        title: Actions
+        show_name: true
+        show_icon: false
+        tap_action:
+          action: call-service
+          service: habit_tracker.reset_week
+          data: {}
+        target:
+          entity_id: button.habit_tracker_sarah_add_habit
+        name: Reset Sarah's Week
+
+  # =============================================
+  # VIEW 2: Statistics Dashboard
+  # =============================================
+  - title: Statistics
+    icon: mdi:chart-box
+    cards:
+      # John's Stats
+      - type: entities
+        title: John's Statistics
+        show_header_toggle: false
+        entities:
+          - entity: sensor.habit_tracker_john_exercise_total
+            name: Exercise - Total Days
+            icon: mdi:soccer
+          - entity: sensor.habit_tracker_john_exercise_rate
+            name: Exercise - Completion Rate
+            icon: mdi:percent
+          - entity: sensor.habit_tracker_john_reading_total
+            name: Reading - Total Days
+            icon: mdi:book-open-page-variant
+          - entity: sensor.habit_tracker_john_reading_rate
+            name: Reading - Completion Rate
+            icon: mdi:percent
+          - entity: sensor.habit_tracker_john_meditation_total
+            name: Meditation - Total Days
+            icon: mdi:spirit-level
+          - entity: sensor.habit_tracker_john_meditation_rate
+            name: Meditation - Completion Rate
+            icon: mdi:percent
+
+      # Sarah's Stats
+      - type: entities
+        title: Sarah's Statistics
+        show_header_toggle: false
+        entities:
+          - entity: sensor.habit_tracker_sarah_yoga_total
+            name: Yoga - Total Days
+            icon: mdi:yoga
+          - entity: sensor.habit_tracker_sarah_yoga_rate
+            name: Yoga - Completion Rate
+            icon: mdi:percent
+          - entity: sensor.habit_tracker_sarah_journaling_total
+            name: Journaling - Total Days
+            icon: mdi:file-document-edit
+          - entity: sensor.habit_tracker_sarah_journaling_rate
+            name: Journaling - Completion Rate
+            icon: mdi:percent
+
+  # =============================================
+  # VIEW 3: Quick Actions (for voice/automation)
+  # =============================================
+  - title: Quick Actions
+    icon: mdi:lightning-bolt
+    cards:
+      - type: entities
+        title: Add New Habits
+        show_header_toggle: false
+        entities:
+          - entity: button.habit_tracker_john_add_habit
+            name: Add Habit for John
+          - entity: button.habit_tracker_sarah_add_habit
+            name: Add Habit for Sarah
+
+      - type: conditional
+        conditions:
+          - entity: sensor.date
+            state_not: "sunday"
+        card:
+          type: entities
+          title: Weekly Reset
+          show_header_toggle: false
+          entities:
+            - entity: button.habit_tracker_john_add_habit
+              name: Reset John's Week
+              icon: mdi:refresh
+            - entity: button.habit_tracker_sarah_add_habit
+              name: Reset Sarah's Week
+              icon: mdi:refresh

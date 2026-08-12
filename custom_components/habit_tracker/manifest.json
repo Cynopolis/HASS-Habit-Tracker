@@ -1,0 +1,12 @@
+{
+  "domain": "habit_tracker",
+  "name": "Habit Tracker",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/example/habit-tracker-ha",
+  "integration_type": "hub",
+  "iot_level": "local",
+  "quality_scale": "silver",
+  "requirements": [],
+  "version": "1.0.0"
+}

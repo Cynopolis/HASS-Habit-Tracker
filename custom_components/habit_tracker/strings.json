@@ -1,0 +1,80 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Habit Tracker Instance",
+        "description": "Set up a new habit tracker for a person.",
+        "data": {
+          "name": "Name",
+          "data_file": "Data File Name (optional, defaults to auto-generated)"
+        }
+      }
+    },
+    "error": {
+      "exists": "This habit tracker already exists."
+    },
+    "abort": {
+      "already_configured": "This habit tracker is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Habit Tracker Options",
+        "description": "Configure this habit tracker instance.",
+        "data": {
+          "name": "Name",
+          "data_file": "Data File Name"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_habit": {
+      "name": "Add Habit",
+      "description": "Add a new habit to track for this person.",
+      "fields": {
+        "habit_id": {
+          "name": "Habit ID",
+          "description": "Unique identifier for the habit (lowercase, underscores only)"
+        },
+        "habit_name": {
+          "name": "Habit Name",
+          "description": "Display name for the habit"
+        }
+      }
+    },
+    "remove_habit": {
+      "name": "Remove Habit",
+      "description": "Remove a habit from tracking.",
+      "fields": {
+        "habit_id": {
+          "name": "Habit ID",
+          "description": "Unique identifier of the habit to remove"
+        }
+      }
+    },
+    "set_completion": {
+      "name": "Set Completion",
+      "description": "Set or unset completion for a habit on a specific date.",
+      "fields": {
+        "habit_id": {
+          "name": "Habit ID",
+          "description": "Unique identifier of the habit"
+        },
+        "date": {
+          "name": "Date",
+          "description": "Date in YYYY-MM-DD format"
+        },
+        "completed": {
+          "name": "Completed",
+          "description": "Whether the habit was completed on this date"
+        }
+      }
+    },
+    "reset_week": {
+      "name": "Reset Week",
+      "description": "Uncheck all habits for the current week."
+    }
+  }
+}
