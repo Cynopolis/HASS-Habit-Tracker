@@ -1,18 +1,15 @@
 """The Habit Tracker integration."""
 
 import logging
-from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.storage import STORAGE_DIR
 
 from .const import (
     ATTR_COMPLETED,
     ATTR_DATE,
     ATTR_HABIT_ID,
     ATTR_HABIT_NAME,
-    CONF_DATA_FILE,
     CONF_NAME,
     DEFAULT_INSTANCE_NAME,
     DOMAIN,
@@ -38,15 +35,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     name = entry.options.get(CONF_NAME, DEFAULT_INSTANCE_NAME)
-    data_file_name = entry.options.get(
-        CONF_DATA_FILE, f"habit_tracker_{entry.entry_id}.json"
-    )
 
-    # Build path to data file in HA's storage directory
-    data_file = Path(hass.config.path(STORAGE_DIR)) / data_file_name
-
-    # Create data manager
-    data_manager = DataManager(hass, data_file)
+    # Create data manager using HA's Store helper
+    data_manager = DataManager(hass)
 
     # Add person if not exists
     person_key = entry.entry_id
@@ -178,17 +169,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Remove a config entry."""
-    # Clean up data file
-    data_file_name = entry.options.get(
-        CONF_DATA_FILE, f"habit_tracker_{entry.entry_id}.json"
-    )
-    data_file = Path(hass.config.path(STORAGE_DIR)) / data_file_name
-
-    if data_file.exists():
-        try:
-            data_file.unlink()
-            _LOGGER.info("Removed data file: %s", data_file)
-        except IOError as e:
-            _LOGGER.error("Failed to remove data file: %s", e)
-
+    # Data is managed by HA's Store helper — no manual cleanup needed
+    _LOGGER.info("Removed habit tracker entry for '%s'", entry.title)
     return True
