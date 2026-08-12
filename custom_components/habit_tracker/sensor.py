@@ -23,17 +23,27 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Habit Tracker sensor platform."""
+    _LOGGER.debug("async_setup_entry called for sensor platform")
     data = hass.data[DOMAIN][config_entry.entry_id]
     data_manager: DataManager = data["data_manager"]
     person_key = data["person_key"]
     name = data["name"]
+    _LOGGER.debug("Person key: %s, Name: %s", person_key, name)
 
     # Read habits from config options
     habits = config_entry.options.get("habits", [])
+    _LOGGER.debug(
+        "Habits from config options: %d habits - %s",
+        len(habits),
+        [h["name"] for h in habits],
+    )
     sensors = []
 
     for habit in habits:
         # Total completed counter
+        _LOGGER.debug(
+            "Creating total sensor for habit: %s (id=%s)", habit["name"], habit["id"]
+        )
         total_sensor = HabitTrackerTotalSensor(
             data_manager=data_manager,
             person_key=person_key,
@@ -44,6 +54,9 @@ async def async_setup_entry(
         sensors.append(total_sensor)
 
         # Completion rate sensor
+        _LOGGER.debug(
+            "Creating rate sensor for habit: %s (id=%s)", habit["name"], habit["id"]
+        )
         rate_sensor = HabitTrackerRateSensor(
             data_manager=data_manager,
             person_key=person_key,
@@ -53,6 +66,7 @@ async def async_setup_entry(
         )
         sensors.append(rate_sensor)
 
+    _LOGGER.debug("Adding %d sensors to HA", len(sensors))
     async_add_entities(sensors)
 
 
@@ -60,6 +74,7 @@ class HabitTrackerTotalSensor(SensorEntity):
     """Represents the total number of days a habit has been completed."""
 
     _attr_name = None  # Use device name + clean entity_id
+    _attr_should_poll = False
     _attr_native_unit_of_measurement = "days"
     _attr_state_class = SensorStateClass.TOTAL
     _attr_icon = ICON_COUNTER
@@ -84,6 +99,9 @@ class HabitTrackerTotalSensor(SensorEntity):
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_total_{safe_habit_id}"
         self.entity_id = f"sensor.{person_key}_{safe_habit_id}_total_completed"
+        _LOGGER.debug(
+            "Entity ID: %s, Unique ID: %s", self.entity_id, self._attr_unique_id
+        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, person_key)},
             name=f"Habit Tracker - {instance_name}",
@@ -94,7 +112,12 @@ class HabitTrackerTotalSensor(SensorEntity):
     @property
     def native_value(self) -> int:
         """Return the total number of completed days."""
-        return self._data_manager.get_total_completed(self._person_key, self._habit_id)
+        _LOGGER.debug("native_value called for habit '%s'", self._habit_name)
+        result = self._data_manager.get_total_completed(
+            self._person_key, self._habit_id
+        )
+        _LOGGER.debug("native_value returning: %d", result)
+        return result
 
     @property
     def available(self) -> bool:
@@ -106,6 +129,7 @@ class HabitTrackerRateSensor(SensorEntity):
     """Represents the completion rate of a habit as a percentage."""
 
     _attr_name = None  # Use device name + clean entity_id
+    _attr_should_poll = False
     _attr_native_unit_of_measurement = "%"
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = ICON_CHECK_CIRCLE
@@ -131,6 +155,9 @@ class HabitTrackerRateSensor(SensorEntity):
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_rate_{safe_habit_id}"
         self.entity_id = f"sensor.{person_key}_{safe_habit_id}_completion_rate"
+        _LOGGER.debug(
+            "Entity ID: %s, Unique ID: %s", self.entity_id, self._attr_unique_id
+        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, person_key)},
             name=f"Habit Tracker - {instance_name}",
@@ -141,7 +168,12 @@ class HabitTrackerRateSensor(SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the completion rate as a percentage."""
-        return self._data_manager.get_completion_rate(self._person_key, self._habit_id)
+        _LOGGER.debug("native_value called for habit '%s'", self._habit_name)
+        result = self._data_manager.get_completion_rate(
+            self._person_key, self._habit_id
+        )
+        _LOGGER.debug("native_value returning: %.1f%%", result)
+        return result
 
     @property
     def available(self) -> bool:
