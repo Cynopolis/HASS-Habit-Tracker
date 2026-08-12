@@ -59,8 +59,7 @@ async def async_setup_entry(
 class HabitTrackerTotalSensor(SensorEntity):
     """Represents the total number of days a habit has been completed."""
 
-    _attr_has_entity_name = True
-    _attr_name = "Total Completed"
+    _attr_name = None  # Use device name + clean entity_id
     _attr_native_unit_of_measurement = "days"
     _attr_state_class = SensorStateClass.TOTAL
     _attr_icon = ICON_COUNTER
@@ -84,6 +83,7 @@ class HabitTrackerTotalSensor(SensorEntity):
 
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_total_{safe_habit_id}"
+        self.entity_id = f"sensor.{person_key}_{safe_habit_id}_total_completed"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, person_key)},
             name=f"Habit Tracker - {instance_name}",
@@ -105,8 +105,7 @@ class HabitTrackerTotalSensor(SensorEntity):
 class HabitTrackerRateSensor(SensorEntity):
     """Represents the completion rate of a habit as a percentage."""
 
-    _attr_has_entity_name = True
-    _attr_name = "Completion Rate"
+    _attr_name = None  # Use device name + clean entity_id
     _attr_native_unit_of_measurement = "%"
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = ICON_CHECK_CIRCLE
@@ -131,6 +130,7 @@ class HabitTrackerRateSensor(SensorEntity):
 
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_rate_{safe_habit_id}"
+        self.entity_id = f"sensor.{person_key}_{safe_habit_id}_completion_rate"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, person_key)},
             name=f"Habit Tracker - {instance_name}",

@@ -22,7 +22,7 @@ from .data_manager import DataManager
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["button", "binary_sensor", "sensor"]
+PLATFORMS = ["binary_sensor", "sensor"]
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
