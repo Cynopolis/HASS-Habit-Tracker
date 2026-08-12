@@ -92,19 +92,9 @@ class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
             }
         )
 
-        # Build display text for current habits
-        if self._habits_list:
-            habit_names = "\n".join(
-                f"• {h['name']} ({h['id']})" for h in self._habits_list
-            )
-            description = f"**Current habits:**\n{habit_names}"
-        else:
-            description = "No habits configured yet."
-
         return self.async_show_form(
             step_id="init",
             data_schema=schema,
-            description_text=description,
         )
 
     async def async_step_add_habit(
