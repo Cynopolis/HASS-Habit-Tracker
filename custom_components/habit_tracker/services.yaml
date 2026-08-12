@@ -1,0 +1,36 @@
+add_habit:
+  fields:
+    habit_id:
+      required: true
+      example: "exercise"
+      description: "Unique identifier for the habit (lowercase, no spaces)"
+    habit_name:
+      required: true
+      example: "Exercise"
+      description: "Display name for the habit"
+
+remove_habit:
+  fields:
+    habit_id:
+      required: true
+      example: "exercise"
+      description: "Unique identifier of the habit to remove"
+
+set_completion:
+  fields:
+    habit_id:
+      required: true
+      example: "exercise"
+      description: "Unique identifier of the habit"
+    date:
+      required: true
+      example: "2024-01-15"
+      description: "Date to set completion for (YYYY-MM-DD)"
+    completed:
+      required: false
+      default: true
+      example: true
+      description: "Whether the habit was completed on this date"
+
+reset_week:
+  fields: {}
