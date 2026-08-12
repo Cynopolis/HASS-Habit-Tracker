@@ -6,10 +6,10 @@ This file captures key learnings, conventions, and constraints discovered during
 
 ## Branch Protection & Commit Practices
 
+- Check which branch you're on before making a commit. If you're on main or develop stop and ask the user what to do.
 - **Never commit directly to `main` or `develop`** — branch protection rules block this
 - Always create a feature branch: `git checkout -b <feature-name> develop`
 - Push branches yourself only when explicitly asked — **never auto-push**
-- You handle all commits; the user handles all pushes to remote
 
 ### Branch Naming Convention
 
