@@ -23,7 +23,6 @@ DAYS_OF_WEEK_FULL: Final = [
 # Config entry keys
 CONF_NAME: Final = "name"
 CONF_HABITS: Final = "habits"
-CONF_DATA_FILE: Final = "data_file"
 
 # Entity suffixes
 SUFFIX_BUTTON_ADD: Final = "add_habit"

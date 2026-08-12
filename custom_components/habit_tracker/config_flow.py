@@ -9,7 +9,6 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import (
-    CONF_DATA_FILE,
     CONF_NAME,
     DEFAULT_INSTANCE_NAME,
     DOMAIN,
@@ -20,7 +19,6 @@ _LOGGER = logging.getLogger(__name__)
 STEP_USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_NAME, default=DEFAULT_INSTANCE_NAME): str,
-        vol.Optional(CONF_DATA_FILE, default=""): str,
     }
 )
 
