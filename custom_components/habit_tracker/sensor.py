@@ -2,7 +2,7 @@
 
 import logging
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -60,8 +60,8 @@ class HabitTrackerTotalSensor(SensorEntity):
 
     _attr_has_entity_name = True
     _attr_name = "Total Completed"
-    _attr_device_class = SensorDeviceClass.ENUM
     _attr_native_unit_of_measurement = "days"
+    _attr_state_class = SensorStateClass.TOTAL
     _attr_icon = ICON_COUNTER
 
     def __init__(
@@ -106,8 +106,8 @@ class HabitTrackerRateSensor(SensorEntity):
 
     _attr_has_entity_name = True
     _attr_name = "Completion Rate"
-    _attr_device_class = SensorDeviceClass.PERCENTAGE
     _attr_native_unit_of_measurement = "%"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_icon = ICON_CHECK_CIRCLE
     _attr_suggested_display_precision = 1
 
