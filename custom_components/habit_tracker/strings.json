@@ -14,25 +14,48 @@
       "exists": "This habit tracker already exists."
     },
     "abort": {
-      "already_configured": "This habit tracker is already configured."
+      "already_configured": "This habit tracker is already configured.",
+      "no_habits_to_remove": "No habits are currently configured to remove."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Habit Tracker Options",
-        "description": "Configure this habit tracker instance.",
+        "description": "Manage your configured habits.",
         "data": {
-          "name": "Name",
-          "data_file": "Data File Name"
+          "action": "Action"
+        }
+      },
+      "add_habit": {
+        "title": "Add a New Habit",
+        "description": "Enter the details for the new habit.",
+        "data": {
+          "habit_id": "Habit ID (lowercase, underscores)",
+          "habit_name": "Display Name"
+        },
+        "data_description": {
+          "habit_id": "e.g., exercise, morning_reading, meditation",
+          "habit_name": "e.g., Exercise, Morning Reading, Meditation"
+        }
+      },
+      "remove_habit": {
+        "title": "Remove a Habit",
+        "description": "Select the habit to remove.",
+        "data": {
+          "habit_id": "Habit to Remove"
         }
       }
+    },
+    "error": {
+      "habits_cannot_be_empty": "Both ID and Name are required.",
+      "already_exists": "A habit with this ID already exists."
     }
   },
   "services": {
     "add_habit": {
       "name": "Add Habit",
-      "description": "Add a new habit to track for this person.",
+      "description": "Add a new habit to track for this person (service fallback).",
       "fields": {
         "habit_id": {
           "name": "Habit ID",
@@ -46,7 +69,7 @@
     },
     "remove_habit": {
       "name": "Remove Habit",
-      "description": "Remove a habit from tracking.",
+      "description": "Remove a habit from tracking (service fallback).",
       "fields": {
         "habit_id": {
           "name": "Habit ID",

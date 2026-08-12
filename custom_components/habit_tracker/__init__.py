@@ -52,15 +52,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     person_key = entry.entry_id
     data_manager.add_person(person_key, name)
 
+    # Register services
+    _async_register_services(hass, entry)
+
     # Store in hass.data for access from platforms and services
     hass.data[DOMAIN][entry.entry_id] = {
         "data_manager": data_manager,
         "person_key": person_key,
         "name": name,
     }
-
-    # Register services
-    _async_register_services(hass, entry)
 
     # Forward setup to platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
