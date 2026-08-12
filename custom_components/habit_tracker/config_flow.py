@@ -35,11 +35,11 @@ class HabitTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    @classmethod
+    @staticmethod
     @callback
-    def async_get_options_flow(cls, config_entry: config_entries.ConfigEntry):
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
         """Get the options flow for this handler."""
-        return HabitTrackerOptionsFlowHandler(config_entry)
+        return HabitTrackerOptionsFlowHandler()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -66,11 +66,9 @@ class HabitTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Habit Tracker."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
         self._habits_list: list[dict[str, str]] = []
-        self._current_step: str = "habits"  # "habits", "add_habit", "remove_habit"
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -83,8 +81,8 @@ class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
             elif action == "remove":
                 return await self.async_step_remove_habit()
 
-        # Load current habits from data file
-        self._habits_list = self._get_current_habits()
+        # Load current habits from config entry options
+        self._habits_list = self.config_entry.options.get("habits", [])
 
         schema = vol.Schema(
             {
@@ -140,7 +138,9 @@ class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Save to options
         new_habits = self._habits_list + [{"id": habit_id, "name": habit_name}]
-        self._update_options(habits=new_habits)
+        updated = dict(self.config_entry.options)
+        updated["habits"] = new_habits
+        self.hass.config_entries.async_update_entry(self.config_entry, options=updated)
 
         return self.async_create_entry(data={})
 
@@ -166,16 +166,8 @@ class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
 
         habit_id = user_input["habit_id"]
         remaining = [h for h in self._habits_list if h["id"] != habit_id]
-        self._update_options(habits=remaining)
+        updated = dict(self.config_entry.options)
+        updated["habits"] = remaining
+        self.hass.config_entries.async_update_entry(self.config_entry, options=updated)
 
         return self.async_create_entry(data={})
-
-    def _get_current_habits(self) -> list[dict[str, str]]:
-        """Load configured habits from options."""
-        return self.config_entry.options.get("habits", [])
-
-    def _update_options(self, habits: list[dict[str, str]]) -> None:
-        """Update config entry options with new habit list."""
-        updated = dict(self.config_entry.options)
-        updated["habits"] = habits
-        self.hass.config_entries.async_update_entry(self.config_entry, options=updated)
