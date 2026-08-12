@@ -11,7 +11,13 @@ DEFAULT_INSTANCE_NAME: Final = "Habit Tracker"
 # Days of the week for the grid display
 DAYS_OF_WEEK: Final = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 DAYS_OF_WEEK_FULL: Final = [
-    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
 ]
 
 # Config entry keys
@@ -55,6 +61,7 @@ ICON_CHART: Final = "mdi:chart-line"
 ICON_CHECK_CIRCLE: Final = "mdi:check-circle"
 ICON_COUNTER: Final = "mdi:counter"
 
+
 # Default data structure for a person's habits
 def default_person_data() -> dict:
     """Return default data structure for a person."""
@@ -62,6 +69,7 @@ def default_person_data() -> dict:
         KEY_NAME: "",
         KEY_HABITS: [],  # List of habit dicts
     }
+
 
 def default_habit_data(habit_id: str, name: str) -> dict:
     """Return default data structure for a habit."""
@@ -71,19 +79,23 @@ def default_habit_data(habit_id: str, name: str) -> dict:
         KEY_COMPLETIONS: {},  # date_string -> bool
     }
 
+
 def get_current_week_dates() -> list[str]:
     """Return list of date strings for the current week (Mon-Sun)."""
     today = date.today()
     monday = today - timedelta(days=today.weekday())
     return [(monday + timedelta(days=i)).isoformat() for i in range(7)]
 
+
 def get_habit_entity_id(person_key: str, habit_id: str) -> str:
     """Generate entity ID for a habit binary sensor."""
     return f"binary_sensor.habit_tracker_{person_key}_{habit_id}"
 
+
 def get_total_completed_entity_id(person_key: str, habit_id: str) -> str:
     """Generate entity ID for total completed counter."""
     return f"sensor.habit_tracker_{person_key}_{habit_id}_total"
+
 
 def get_completion_rate_entity_id(person_key: str, habit_id: str) -> str:
     """Generate entity ID for completion rate sensor."""

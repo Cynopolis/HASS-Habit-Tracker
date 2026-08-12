@@ -4,11 +4,9 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import selector
 
 from .const import (
     CONF_DATA_FILE,
@@ -50,9 +48,11 @@ class HabitTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         # Check if already configured
-        self._async_abort_entries_match({
-            CONF_NAME: user_input.get(CONF_NAME, DEFAULT_INSTANCE_NAME),
-        })
+        self._async_abort_entries_match(
+            {
+                CONF_NAME: user_input.get(CONF_NAME, DEFAULT_INSTANCE_NAME),
+            }
+        )
 
         return self.async_create_entry(
             title=user_input[CONF_NAME],
@@ -97,8 +97,11 @@ class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
 @callback
 def async_get_available_entries(hass) -> list[tuple[str, str]]:
     """Get all configured habit tracker instances.
-    
+
     Returns list of (entry_id, name) tuples.
     """
     entries = hass.config_entries.async_entries(DOMAIN)
-    return [(entry.entry_id, entry.options.get(CONF_NAME, DEFAULT_INSTANCE_NAME)) for entry in entries]
+    return [
+        (entry.entry_id, entry.options.get(CONF_NAME, DEFAULT_INSTANCE_NAME))
+        for entry in entries
+    ]

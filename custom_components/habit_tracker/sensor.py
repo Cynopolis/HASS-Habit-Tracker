@@ -2,15 +2,15 @@
 
 import logging
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    ICON_COUNTER,
     ICON_CHECK_CIRCLE,
+    ICON_COUNTER,
 )
 from .data_manager import DataManager
 
@@ -79,7 +79,7 @@ class HabitTrackerTotalSensor(SensorEntity):
         self._habit_id = habit["id"]
         self._habit_name = habit["name"]
         self._config_entry = config_entry
-        self._instance_name = name
+        self._instance_name = instance_name
 
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_total_{safe_habit_id}"
@@ -93,9 +93,7 @@ class HabitTrackerTotalSensor(SensorEntity):
     @property
     def native_value(self) -> int:
         """Return the total number of completed days."""
-        return self._data_manager.get_total_completed(
-            self._person_key, self._habit_id
-        )
+        return self._data_manager.get_total_completed(self._person_key, self._habit_id)
 
     @property
     def available(self) -> bool:
@@ -142,9 +140,7 @@ class HabitTrackerRateSensor(SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the completion rate as a percentage."""
-        return self._data_manager.get_completion_rate(
-            self._person_key, self._habit_id
-        )
+        return self._data_manager.get_completion_rate(self._person_key, self._habit_id)
 
     @property
     def available(self) -> bool:

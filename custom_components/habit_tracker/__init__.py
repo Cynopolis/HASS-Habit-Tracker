@@ -8,10 +8,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import STORAGE_DIR
 
 from .const import (
+    ATTR_COMPLETED,
     ATTR_DATE,
     ATTR_HABIT_ID,
-    ATTR_PERSON_KEY,
-    ATTR_COMPLETED,
+    ATTR_HABIT_NAME,
     CONF_DATA_FILE,
     CONF_NAME,
     DEFAULT_INSTANCE_NAME,
@@ -38,7 +38,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     name = entry.options.get(CONF_NAME, DEFAULT_INSTANCE_NAME)
-    data_file_name = entry.options.get(CONF_DATA_FILE, f"habit_tracker_{entry.entry_id}.json")
+    data_file_name = entry.options.get(
+        CONF_DATA_FILE, f"habit_tracker_{entry.entry_id}.json"
+    )
 
     # Build path to data file in HA's storage directory
     data_file = Path(hass.config.path(STORAGE_DIR)) / data_file_name
@@ -77,16 +79,22 @@ def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
         dm = data["data_manager"]
         person_key = data["person_key"]
 
-        habit_id = service_call.data.get(ATTR_HABIT_ID, "").strip().lower().replace(" ", "_")
+        habit_id = (
+            service_call.data.get(ATTR_HABIT_ID, "").strip().lower().replace(" ", "_")
+        )
         habit_name = service_call.data.get(ATTR_HABIT_NAME, "").strip()
 
         if not habit_id or not habit_name:
-            _LOGGER.warning("Both habit_id and habit_name are required for %s", SERVICE_ADD_HABIT)
+            _LOGGER.warning(
+                "Both habit_id and habit_name are required for %s", SERVICE_ADD_HABIT
+            )
             return
 
         habit = dm.add_habit(person_key, habit_id, habit_name)
         if habit:
-            await hass.config_entries.async_forward_entry_setups(entry, ["binary_sensor", "sensor"])
+            await hass.config_entries.async_forward_entry_setups(
+                entry, ["binary_sensor", "sensor"]
+            )
             _LOGGER.info("Habit '%s' added via service", habit_name)
 
     async def handle_remove_habit(service_call):
@@ -95,7 +103,9 @@ def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
         dm = data["data_manager"]
         person_key = data["person_key"]
 
-        habit_id = service_call.data.get(ATTR_HABIT_ID, "").strip().lower().replace(" ", "_")
+        habit_id = (
+            service_call.data.get(ATTR_HABIT_ID, "").strip().lower().replace(" ", "_")
+        )
         if not habit_id:
             _LOGGER.warning("habit_id is required for %s", SERVICE_REMOVE_HABIT)
             return
@@ -110,12 +120,16 @@ def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
         dm = data["data_manager"]
         person_key = data["person_key"]
 
-        habit_id = service_call.data.get(ATTR_HABIT_ID, "").strip().lower().replace(" ", "_")
+        habit_id = (
+            service_call.data.get(ATTR_HABIT_ID, "").strip().lower().replace(" ", "_")
+        )
         date_str = service_call.data.get(ATTR_DATE, "")
         completed = service_call.data.get(ATTR_COMPLETED, True)
 
         if not habit_id or not date_str:
-            _LOGGER.warning("habit_id and date are required for %s", SERVICE_SET_COMPLETION)
+            _LOGGER.warning(
+                "habit_id and date are required for %s", SERVICE_SET_COMPLETION
+            )
             return
 
         dm.set_completion(person_key, habit_id, date_str, completed)
@@ -165,7 +179,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Remove a config entry."""
     # Clean up data file
-    data_file_name = entry.options.get(CONF_DATA_FILE, f"habit_tracker_{entry.entry_id}.json")
+    data_file_name = entry.options.get(
+        CONF_DATA_FILE, f"habit_tracker_{entry.entry_id}.json"
+    )
     data_file = Path(hass.config.path(STORAGE_DIR)) / data_file_name
 
     if data_file.exists():
