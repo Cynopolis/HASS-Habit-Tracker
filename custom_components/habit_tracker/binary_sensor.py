@@ -55,7 +55,6 @@ async def async_setup_entry(
 class HabitTrackerBinarySensor(BinarySensorEntity):
     """Represents the completion status of a habit for the current week."""
 
-    _attr_has_entity_name = True
     _attr_device_class = BinarySensorDeviceClass.RUNNING
 
     def __init__(
@@ -78,7 +77,8 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
         # Entity identification
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_{SUFFIX_BINARY_SENSOR}_{safe_habit_id}"
-        self._attr_name = self._habit_name
+        self._attr_name = None  # Use device name + clean entity_id
+        self.entity_id = f"binary_sensor.{person_key}_{safe_habit_id}"
 
         # Device info
         self._attr_device_info = DeviceInfo(
