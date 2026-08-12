@@ -7,7 +7,7 @@
 
 A Home Assistant custom integration for tracking daily habits with a weekly grid view, per-person trackers, and completion statistics.
 
-![Screenshot](https://raw.githubusercontent.com/example/habit-tracker-ha/main/docs/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/Cynopolis/HASS-Habit-Tracker/main/docs/screenshot.png)
 
 ## Features
 
@@ -21,13 +21,17 @@ A Home Assistant custom integration for tracking daily habits with a weekly grid
 
 ### Via HACS (Recommended)
 
-1. Open **HACS** → **Integrations**
-2. Click the **⋮** menu → **Custom repositories**
-3. Set repository URL to `https://github.com/example/habit-tracker-ha`
-4. Category: **Integration**
-5. Click **Add**
-6. Find **Habit Tracker** in the list and click **Download**
-7. Restart Home Assistant
+Have [HACS](https://hacs.xyz/) installed, this will allow you to update easily.
+
+Adding Habit Tracker for Home Assistant to HACS can be done using this button:
+
+[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Cynopolis&repository=HASS-Habit-Tracker&category=integration)
+
+> [!NOTE]
+> If the button above doesn't work, add `https://github.com/Cynopolis/HASS-Habit-Tracker` as a custom repository of type **Integration** in HACS.
+
+* Click **Download** on the **Habit Tracker** integration.
+* Restart Home Assistant.
 
 ### Manual Installation
 
@@ -92,12 +96,12 @@ target:
 
 ## Entities Created Per Person
 
-| Entity | Type | Description |
-|--------|------|-------------|
-| `button.habit_tracker_{person}_add_habit` | Button | Trigger to add new habits |
+| Entity                                         | Type          | Description                 |
+| ---------------------------------------------- | ------------- | --------------------------- |
+| `button.habit_tracker_{person}_add_habit`      | Button        | Trigger to add new habits   |
 | `binary_sensor.habit_tracker_{person}_{habit}` | Binary Sensor | Toggle completion for today |
-| `sensor.habit_tracker_{person}_{habit}_total` | Sensor | Total days completed |
-| `sensor.habit_tracker_{person}_{habit}_rate` | Sensor | Completion rate (%) |
+| `sensor.habit_tracker_{person}_{habit}_total`  | Sensor        | Total days completed        |
+| `sensor.habit_tracker_{person}_{habit}_rate`   | Sensor        | Completion rate (%)         |
 
 ## Example Dashboard
 
@@ -115,12 +119,12 @@ entities:
 
 ## Services Reference
 
-| Service | Description | Required Data |
-|---------|-------------|---------------|
-| `habit_tracker.add_habit` | Add a new habit | `habit_id`, `habit_name` |
-| `habit_tracker.remove_habit` | Remove a habit | `habit_id` |
-| `habit_tracker.set_completion` | Set completion for a date | `habit_id`, `date`, `completed` |
-| `habit_tracker.reset_week` | Uncheck all habits this week | — |
+| Service                        | Description                  | Required Data                   |
+| ------------------------------ | ---------------------------- | ------------------------------- |
+| `habit_tracker.add_habit`      | Add a new habit              | `habit_id`, `habit_name`        |
+| `habit_tracker.remove_habit`   | Remove a habit               | `habit_id`                      |
+| `habit_tracker.set_completion` | Set completion for a date    | `habit_id`, `date`, `completed` |
+| `habit_tracker.reset_week`     | Uncheck all habits this week | —                               |
 
 ## Data Storage
 
@@ -140,9 +144,9 @@ MIT License — See [LICENSE](LICENSE) for details.
 
 [hacs-badge]: https://img.shields.io/badge/HACS-Default-orange.svg?logo=HomeAssistantCommunityStore&logoColor=white
 [hacs]: https://hacs.xyz
-[releases-shield]: https://img.shields.io/github/v/release/example/habit-tracker-ha?style=for-the-badge&color=blue
-[releases]: https://github.com/example/habit-tracker-ha/releases
-[action-badge]: https://img.shields.io/github/actions/workflow/status/example/habit-tracker-ha/ci.yml?branch=main&style=for-the-badge
-[action]: https://github.com/example/habit-tracker-ha/actions
-[license-badge]: https://img.shields.io/github/license/example/habit-tracker-ha?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/v/release/Cynopolis/HASS-Habit-Tracker?style=for-the-badge&color=blue
+[releases]: https://github.com/Cynopolis/HASS-Habit-Tracker/releases
+[action-badge]: https://img.shields.io/github/actions/workflow/status/Cynopolis/HASS-Habit-Tracker/ci.yml?branch=main&style=for-the-badge
+[action]: https://github.com/Cynopolis/HASS-Habit-Tracker/actions
+[license-badge]: https://img.shields.io/github/license/Cynopolis/HASS-Habit-Tracker?style=for-the-badge
 [license]: LICENSE
