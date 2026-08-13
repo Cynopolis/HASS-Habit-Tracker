@@ -154,6 +154,10 @@ class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
         _LOGGER.debug("Updating config entry options with: %s", updated)
         self.hass.config_entries.async_update_entry(self.config_entry, options=updated)
 
+        # Reload platforms to create new entities for the habit
+        _LOGGER.debug("Reloading platforms after adding habit '%s'", habit_name)
+        await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+
         _LOGGER.info("Habit '%s' added successfully via options flow", habit_name)
         return self.async_create_entry(data={})
 
@@ -189,6 +193,10 @@ class HabitTrackerOptionsFlowHandler(config_entries.OptionsFlow):
             "Updating config entry options with remaining habits: %s", remaining
         )
         self.hass.config_entries.async_update_entry(self.config_entry, options=updated)
+
+        # Reload platforms to remove entities for the removed habit
+        _LOGGER.debug("Reloading platforms after removing habit '%s'", habit_id)
+        await self.hass.config_entries.async_reload(self.config_entry.entry_id)
 
         _LOGGER.info("Habit '%s' removed successfully via options flow", habit_id)
         return self.async_create_entry(data={})
