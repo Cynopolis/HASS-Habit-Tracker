@@ -86,11 +86,10 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
         self._config_entry = config_entry
         self._instance_name = instance_name
 
-        # Entity identification
+        # Entity identification — let HA auto-generate entity_id from unique_id
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_{SUFFIX_BINARY_SENSOR}_{safe_habit_id}"
         self._attr_name = None  # Use device name + clean entity_id
-        self.entity_id = f"binary_sensor.{person_key}_{safe_habit_id}"
         _LOGGER.debug(
             "Entity ID: %s, Unique ID: %s", self.entity_id, self._attr_unique_id
         )

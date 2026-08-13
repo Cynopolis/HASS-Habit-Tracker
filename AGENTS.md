@@ -183,6 +183,108 @@ The `DataManager` class handles:
 
 ---
 
+## Debug Logging Guidelines
+
+Good debug logging is critical for diagnosing issues. Follow these conventions:
+
+### When to Log (Always)
+
+1. **Entry points** — every `async_setup_entry`, `async_step_*`, service handler, `__init__`, and platform setup
+2. **State transitions** — when data changes (person added, habit added/removed, completion set)
+3. **Data reads/writes** — loading from store, saving to store, reading config options
+4. **Entity creation** — each sensor/binary_sensor being created with its ID and unique_id
+5. **User input** — what the user submitted through config flow forms
+6. **Errors/warnings** — validation failures, duplicate checks, missing data
+
+### What to Log (Key Details)
+
+Always include enough context to reconstruct the state:
+
+```python
+# ✅ Good: includes key values and purpose
+_LOGGER.debug("async_step_add_habit called with user_input: %s", user_input)
+_LOGGER.debug("Parsed habit_id='%s', habit_name='%s'", habit_id, habit_name)
+_LOGGER.debug("Existing habit IDs: %s", existing_ids)
+_LOGGER.info("Habit '%s' added successfully via options flow", habit_name)
+
+# ❌ Bad: no context, can't reconstruct what happened
+_LOGGER.debug("Adding habit")
+_LOGGER.info("Done")
+```
+
+### Logging Levels
+
+| Level   | When to Use                                          |
+| ------- | ---------------------------------------------------- |
+| `DEBUG` | Every entry point, data reads/writes, state changes  |
+| `INFO`  | Successful operations (habit added/removed, reset)   |
+| `WARNING` | Validation failures, duplicate IDs, empty inputs |
+| `ERROR` | Exceptions, failed saves, unexpected states          |
+
+### Entity ID Logging
+
+Always log the computed `entity_id` and `unique_id` at entity creation time — this is the fastest way to verify entities are being created with correct identifiers:
+
+```python
+_LOGGER.debug(
+    "Entity ID: %s, Unique ID: %s", self.entity_id, self._attr_unique_id
+)
+```
+
+### Data Flow Logging
+
+For `DataManager` operations, log the full call signature and result:
+
+```python
+_LOGGER.debug("add_person called for key='%s', name='%s'", key, name)
+_LOGGER.debug("people property accessed, returning %d people: %s", len(people), people)
+_LOGGER.debug("get_habit called for person='%s', habit_id='%s'", person_key, habit_id)
+```
+
+### Config Flow Specific
+
+Log the full flow progression — this is essential when users report issues with the setup UI:
+
+```python
+_LOGGER.debug("async_step_user called with user_input: %s", user_input)
+_LOGGER.debug("Showing user form")
+_LOGGER.debug("Checking for duplicate names: %s", user_input.get(CONF_NAME))
+_LOGGER.debug("Creating entry with title: %s", user_input[CONF_NAME])
+```
+
+### Service Handler Specific
+
+Log the service call data and parsed values:
+
+```python
+_LOGGER.debug("handle_add_habit called with data: %s", service_call.data)
+_LOGGER.debug("Parsed habit_id='%s', habit_name='%s'", habit_id, habit_name)
+```
+
+### Platform Setup Specific
+
+Log the habits loaded from config options and how many entities are being created:
+
+```python
+_LOGGER.debug(
+    "Habits from config options: %d habits - %s",
+    len(habits),
+    [h["name"] for h in habits],
+)
+_LOGGER.debug("Adding %d binary sensors to HA", len(sensors))
+```
+
+### State Property Logging (binary_sensor)
+
+Log state property calls that depend on time-sensitive data:
+
+```python
+_LOGGER.debug("is_on called: checking date %s", current_date)
+_LOGGER.debug("is_on returning: %s (completions=%s)", result, completions.get(current_date))
+```
+
+---
+
 ## Common Pitfalls (Learned During Development)
 
 1. **Import ordering** — Ruff's I001 catches unsorted imports; use `ruff check --fix` or `ruff format`

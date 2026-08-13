@@ -98,7 +98,6 @@ class HabitTrackerTotalSensor(SensorEntity):
 
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_total_{safe_habit_id}"
-        self.entity_id = f"sensor.{person_key}_{safe_habit_id}_total_completed"
         _LOGGER.debug(
             "Entity ID: %s, Unique ID: %s", self.entity_id, self._attr_unique_id
         )
@@ -154,7 +153,6 @@ class HabitTrackerRateSensor(SensorEntity):
 
         safe_habit_id = self._habit_id.replace("-", "_").replace(" ", "_")
         self._attr_unique_id = f"{person_key}_rate_{safe_habit_id}"
-        self.entity_id = f"sensor.{person_key}_{safe_habit_id}_completion_rate"
         _LOGGER.debug(
             "Entity ID: %s, Unique ID: %s", self.entity_id, self._attr_unique_id
         )
