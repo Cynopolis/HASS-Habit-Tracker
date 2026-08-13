@@ -30,16 +30,26 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Habit Tracker binary sensor platform."""
+    _LOGGER.debug("async_setup_entry called for binary_sensor platform")
     data = hass.data[DOMAIN][config_entry.entry_id]
     data_manager: DataManager = data["data_manager"]
     person_key = data["person_key"]
     name = data["name"]
+    _LOGGER.debug("Person key: %s, Name: %s", person_key, name)
 
     # Read habits from config options
     habits = config_entry.options.get("habits", [])
+    _LOGGER.debug(
+        "Habits from config options: %d habits - %s",
+        len(habits),
+        [h["name"] for h in habits],
+    )
     sensors = []
 
     for habit in habits:
+        _LOGGER.debug(
+            "Creating binary sensor for habit: %s (id=%s)", habit["name"], habit["id"]
+        )
         sensor = HabitTrackerBinarySensor(
             data_manager=data_manager,
             person_key=person_key,
@@ -49,6 +59,7 @@ async def async_setup_entry(
         )
         sensors.append(sensor)
 
+    _LOGGER.debug("Adding %d binary sensors to HA", len(sensors))
     async_add_entities(sensors)
 
 
@@ -56,6 +67,7 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
     """Represents the completion status of a habit for the current week."""
 
     _attr_device_class = BinarySensorDeviceClass.RUNNING
+    _attr_should_poll = False
 
     def __init__(
         self,
@@ -79,6 +91,9 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
         self._attr_unique_id = f"{person_key}_{SUFFIX_BINARY_SENSOR}_{safe_habit_id}"
         self._attr_name = None  # Use device name + clean entity_id
         self.entity_id = f"binary_sensor.{person_key}_{safe_habit_id}"
+        _LOGGER.debug(
+            "Entity ID: %s, Unique ID: %s", self.entity_id, self._attr_unique_id
+        )
 
         # Device info
         self._attr_device_info = DeviceInfo(
@@ -92,6 +107,11 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
         self._week_dates = []
         self._current_day_index = 0
         self._update_week()
+        _LOGGER.debug(
+            "Initial week dates: %s, current day index: %d",
+            self._week_dates,
+            self._current_day_index,
+        )
 
     def _update_week(self) -> None:
         """Update the current week's dates."""
@@ -99,18 +119,31 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
         monday = today - timedelta(days=today.weekday())
         self._week_dates = [(monday + timedelta(days=i)).isoformat() for i in range(7)]
         self._current_day_index = today.weekday()
+        _LOGGER.debug(
+            "Updated week: dates=%s, current_day_index=%d",
+            self._week_dates,
+            self._current_day_index,
+        )
 
     @property
     def is_on(self) -> bool:
         """Return True if the habit was completed on the current day."""
         self._update_week()
         current_date = self._week_dates[self._current_day_index]
+        _LOGGER.debug("is_on called: checking date %s", current_date)
         completions = self._habit.get(KEY_COMPLETIONS, {})
-        return bool(completions.get(current_date))
+        result = bool(completions.get(current_date))
+        _LOGGER.debug(
+            "is_on returning: %s (completions=%s)",
+            result,
+            completions.get(current_date),
+        )
+        return result
 
     @property
     def extra_state_attributes(self) -> dict:
         """Return state attributes for the weekly grid view."""
+        _LOGGER.debug("extra_state_attributes called")
         self._update_week()
         completions = self._habit.get(KEY_COMPLETIONS, {})
 
@@ -129,7 +162,7 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
         total_days = len(completions)
         rate = round((total_completed / total_days * 100), 1) if total_days > 0 else 0.0
 
-        return {
+        result = {
             "habit_id": self._habit_id,
             "person_key": self._person_key,
             "week_grid": week_grid,
@@ -137,6 +170,8 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
             "completion_rate": rate,
             "current_day_index": self._current_day_index,
         }
+        _LOGGER.debug("extra_state_attributes returning: %s", result)
+        return result
 
     @property
     def icon(self) -> str:
@@ -150,18 +185,26 @@ class HabitTrackerBinarySensor(BinarySensorEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Mark the habit as completed for today."""
+        _LOGGER.debug("async_turn_on called for habit '%s'", self._habit_name)
         self._update_week()
         current_date = self._week_dates[self._current_day_index]
+        _LOGGER.debug("Setting completion to True for date %s", current_date)
         self._data_manager.set_completion(
             self._person_key, self._habit_id, current_date, True
         )
+        await self._data_manager.async_save()
+        _LOGGER.debug("Data saved, writing HA state")
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Mark the habit as not completed for today."""
+        _LOGGER.debug("async_turn_off called for habit '%s'", self._habit_name)
         self._update_week()
         current_date = self._week_dates[self._current_day_index]
+        _LOGGER.debug("Setting completion to False for date %s", current_date)
         self._data_manager.set_completion(
             self._person_key, self._habit_id, current_date, False
         )
+        await self._data_manager.async_save()
+        _LOGGER.debug("Data saved, writing HA state")
         self.async_write_ha_state()
